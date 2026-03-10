@@ -11,17 +11,19 @@ st.markdown("Generate scientific-quality environmental maps using Google Earth E
 
 # --- GEE Authentication ---
 @st.cache_data
+import json
+from google.oauth2 import service_account
+
+@st.cache_data
 def ee_authenticate():
     try:
-        ee.Initialize()
+        key_dict = json.loads(st.secrets["EARTHENGINE_TOKEN"])
+        credentials = service_account.Credentials.from_service_account_info(key_dict)
+        scoped_credentials = credentials.with_scopes(['https://www.googleapis.com/auth/earthengine'])
+        ee.Initialize(credentials=scoped_credentials, project=key_dict['project_id'])
     except Exception as e:
-        try:
-            ee.Authenticate()
-            ee.Initialize()
-        except Exception as auth_e:
-            st.error("Google Earth Engine authentication failed. Please check your credentials.")
-            st.stop()
-
+        st.error(f"فشلت المصادقة السحابية: {e}")
+        st.stop()
 ee_authenticate()
 
 # --- Sidebar Inputs ---
